@@ -11,14 +11,52 @@
         var $body = $('body');
         $body.html('');
 
-        var index = streams.home.length - 1;
-        while(index >= 0){
+        var addTweet = function(index) {
           var tweet = streams.home[index];
           var $tweet = $('<div></div>');
-          $tweet.text('@' + tweet.user + ': ' + tweet.message);
+          $tweet.html("@<span class='user'>" + tweet.user + "</span>: " + tweet.message + "<br>created at "+tweet.created_at.getHours()+":"+('0'+tweet.created_at.getMinutes()).slice(-2));
+          $tweet.css({'height':'80px','border':'2px solid','margin-bottom':'-2px','border-color':'gray','background-color':'LightBlue','width':'350px','font-size':'large'});
           $tweet.appendTo($body);
+        };
+
+        var index = streams.home.length - 1;
+        while(index >= 0){
+          addTweet(index);
           index -= 1;
         }
+
+        var updateDisplay = function() {
+          var start = $("div").length;
+          console.log(start);
+          console.log(streams.home.length);
+          for (var i=start; i<streams.home.length; i++) {
+            addTweet(i);
+          };
+        };
+
+        var updates = setInterval(updateDisplay,5000); //for auto-updating
+
+        $("body").on('mouseover','div',function() {
+          $(this).css({'text-decoration':'underline','color':'red'}); //to show the user that something happens when you hover/click
+        }).on('mouseleave','div', function() {
+          $(this).css({'text-decoration':'','color':''});
+        }).on('click','div',function(event) { //to filter the tweets by user
+          var userName = $(this).find('.user').text();
+          $("span").not(':contains('+userName+')').closest('div').hide();
+          clearInterval(updates);
+          $('#resumeUpdates').appendTo('body');
+          $("#resumeUpdates").show();
+        });
+
+        $("body").append("<button id='resumeUpdates' style='margin-top: 5px'>Return to all tweets</button>"); //button that will be used to undo filtering
+        $("#resumeUpdates").hide(); 
+
+        $('#resumeUpdates').on('click',function() { //on button click, hide the button, show hidden tweets, and restore auto-updating
+          $('#resumeUpdates').hide();
+          $('body').find('div').show();
+          updates = setInterval(updateDisplay,5000);
+
+        });
 
       });
 
